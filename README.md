@@ -34,6 +34,9 @@ git branch -M main && git remote add origin https://github.com/YOU/linguabridge.
 
 **Free-tier behavior to expect (per Render's docs):** a free web service spins down after 15 minutes without traffic and takes about a minute to wake; the filesystem is ephemeral (fine, all data is in Postgres); a free Postgres database expires 30 days after creation. Fine for testing, not for anything you want to keep.
 
+### If the Render build fails with "/backend/... not found"
+The build context did not contain the project. The Dockerfile now searches the context and prints what it found. Check that your GitHub repo's top level shows `Dockerfile`, `render.yaml`, `backend/` and `frontend/`; in Render > Settings leave **Root Directory** blank, **Dockerfile Path** `./Dockerfile`, **Docker Build Context Directory** `.`; and make sure no folder contains its own `.git` (it would be pushed as an empty submodule).
+
 ## Test checklist (15 minutes)
 1. **Admin:** Accounts > create a *translator* (pairs `vi-en`, domains `General,Business`) and a *user*. Copy each invite link.
 2. Open each invite link in a private window, set a password. The translator gets an MFA secret: add it to an authenticator app.
