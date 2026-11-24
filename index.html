@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LinguaBridge</title>
+<style>
+:root{--bg:#f3f5f4;--cd:#fff;--tx:#12263a;--mu:#5a6b78;--bd:#d6ddda;--ac:#0e7c6b;--ac2:#e0f1ed;--wa:#a35a00;--wb:#fff2dc;--er:#b3261e;color-scheme:light}
+@media(prefers-color-scheme:dark){:root{--bg:#0e1a22;--cd:#16262f;--tx:#e6eeeb;--mu:#9db0ab;--bd:#2a3d47;--ac:#4cc9b0;--ac2:#173a38;--wa:#f0b35a;--wb:#3a2d14;--er:#ff8a80;color-scheme:dark}}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+h1,h2,h3{font-family:Georgia,serif;margin:0 0 .5rem}h2{font-size:1.25rem}h3{font-size:1.02rem}
+.w{max-width:1000px;margin:0 auto;padding:12px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:6px 0 12px}
+.brand{font:700 1.5rem Georgia,serif}.brand i{color:var(--ac);font-style:normal}
+.row{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
+.nav{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--bd);margin-bottom:14px}
+.nav button{border:0;background:none;color:var(--mu);padding:10px 14px;cursor:pointer;font:inherit;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.nav button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:12px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+label{display:block;font-size:.85rem;color:var(--mu);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=checkbox]{width:auto;margin-right:6px}.cb{display:flex;align-items:flex-start;color:var(--tx);font-size:.9rem;margin:6px 0}
+textarea{min-height:150px;font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
+button.b{background:var(--ac);color:#fff;border:0;border-radius:7px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;margin-top:10px}
+button.s{background:none;color:var(--ac);border:1px solid var(--ac);border-radius:7px;padding:5px 10px;cursor:pointer;font:inherit}
+button.d{background:var(--er)}button:disabled{opacity:.5;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:.88rem}th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}.sc{overflow-x:auto}
+.bd{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;background:var(--ac2);color:var(--ac);font-weight:600}.bd.w{background:var(--wb);color:var(--wa)}
+.note{background:var(--wb);color:var(--wa);border-radius:8px;padding:9px 12px;font-size:.87rem;margin-bottom:12px}.mu{color:var(--mu)}.er{color:var(--er)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}.tile{border:1px solid var(--bd);border-radius:10px;padding:10px;background:var(--cd)}.tile.on{border-color:var(--ac);background:var(--ac2)}
+.cap{padding:7px 10px;border-left:3px solid var(--ac);background:var(--bg);margin:6px 0;border-radius:0 6px 6px 0}.cap small{color:var(--mu);margin-right:6px}
+#caps{max-height:340px;overflow-y:auto}pre{white-space:pre-wrap;background:var(--bg);padding:10px;border-radius:7px;margin:4px 0;font-size:.85rem}
+.big{font:700 1.5rem Georgia,serif;color:var(--ac)}#msg{position:fixed;left:50%;bottom:16px;transform:translateX(-50%);padding:10px 16px;border-radius:8px;background:var(--tx);color:var(--bg);max-width:90vw;display:none;z-index:9}#msg.er{background:var(--er);color:#fff}
+</style></head><body><div class="w" id="root"></div><div id="msg" role="status"></div>
+<script>
+"use strict";
+const T={en:{plan:"Plan",new:"New translation",jobs:"My jobs",book:"Interpreting",live:"Sessions",queue:"Job queue",earn:"Earnings",set:"Settings",users:"Accounts",creds:"Credentials",pricing:"Pricing",ledger:"Ledger",audit:"Audit log",tools:"Tools",out:"Sign out"},
+vi:{plan:"Gói",new:"Dịch tài liệu",jobs:"Công việc",book:"Phiên dịch",live:"Phiên",queue:"Hàng chờ",earn:"Thu nhập",set:"Cài đặt",users:"Tài khoản",creds:"Chứng chỉ",pricing:"Giá",ledger:"Sổ cái",audit:"Nhật ký",tools:"Công cụ",out:"Đăng xuất"}};
+const st={tok:sessionStorage.getItem("tok")||"",me:null,meta:null,pairs:[],lang:localStorage.getItem("lang")||"en",cur:localStorage.getItem("cur")||"USD",tab:{user:"plan",translator:"queue",admin:"users"},live:null};
+const $=s=>document.querySelector(s),t=k=>(T[st.lang]||T.en)[k]||k;
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const fmt=n=>st.cur==="VND"?Math.round(n*(st.meta?st.meta.usd_vnd:25000)).toLocaleString("en-US")+" ₫":"$"+Number(n).toFixed(2);
+function say(m,err){const e=$("#msg");e.textContent=m;e.className=err?"er":"";e.style.display="block";clearTimeout(say.t);say.t=setTimeout(()=>e.style.display="none",4500)}
+async function api(p,o={}){const h={};if(st.tok)h.Authorization="Bearer "+st.tok;let b;if(o.form)b=o.form;else if(o.json){h["Content-Type"]="application/json";b=JSON.stringify(o.json)}
+ const r=await fetch(p,{method:o.method||(b?"POST":"GET"),headers:h,body:b});let d=null;try{d=await r.json()}catch(e){}
+ if(!r.ok){if(r.status===401&&st.tok&&!p.startsWith("/auth/login")){logout(true)}throw new Error(d&&typeof d.detail==="string"?d.detail:d&&d.detail?JSON.stringify(d.detail):r.statusText)}return d}
+const run=fn=>async(...a)=>{try{await fn(...a)}catch(e){say(e.message,true)}};
+function logout(silent){stopLive();st.tok="";st.me=null;sessionStorage.removeItem("tok");location.hash="";render();if(!silent)say("Signed out")}
+const V=id=>$("#"+id).value,C=id=>$("#"+id).checked;
+const opts=(a,sel)=>a.map(x=>`<option ${x===sel?"selected":""}>${esc(x)}</option>`).join("");
+const pairOpts=()=>st.pairs.filter(p=>p.status==="LIVE").map(p=>`<option value="${esc(p.id)}">${esc(p.name)}</option>`).join("");
+const polBox=p=>`<div class="note"><b>Rules for this case</b><br>• Human approval required${p.ai_assist_only?"; AI assists only":""}<br>• Credential: ${p.credential_any_of.length?esc(p.credential_any_of.join(" or ")):"vetted translator"}<br>• ${p.all_party_consent?"All-party recording consent (US)":"Explicit consent required"}; recording off by default<br>• ${p.vn_cross_border_tracking?"Vietnam cross-border transfer is tracked":"US data handling"}<br>• ${esc(p.ai_disclosure)}</div>`;
+/* ---------- shell and routing ---------- */
+async function render(){
+ const h=location.hash;let m;
+ if((m=h.match(/^#\/join\/(\d+)\/([\w-]+)$/)))return guest(+m[1],m[2]);
+ if(!st.tok)return loginView((h.match(/^#\/invite\/([\w-]+)$/)||[])[1]||"");
+ try{if(!st.me)st.me=await api("/auth/me");if(!st.meta){st.meta=await api("/meta");st.pairs=await api("/pairs")}}catch(e){return loginView("")}
+ const r=st.me.role,tabs={user:["plan","new","jobs","book","live"],translator:["queue","live","earn","set"],admin:["users","creds","pricing","ledger","audit","tools"]}[r];
+ $("#root").innerHTML=`<header><div class="brand">Lingua<i>Bridge</i></div><div class="row"><span class="mu">${esc(st.me.name)} (${esc(st.me.id)})</span>
+ <select id="lg" onchange="st.lang=this.value;localStorage.lang=this.value;render()" style="width:auto"><option value="en" ${st.lang==="en"?"selected":""}>EN</option><option value="vi" ${st.lang==="vi"?"selected":""}>VI</option></select>
+ <select id="cu" onchange="st.cur=this.value;localStorage.cur=this.value;render()" style="width:auto">${opts(["USD","VND"],st.cur)}</select>
+ ${st.me.mfa_enrolled?"":'<button class="s" onclick="setupMfa()">Set up two-factor</button>'}<button class="s" onclick="logout()">${t("out")}</button></div></header>
+ <div class="nav">${tabs.map(k=>`<button class="${st.tab[r]===k?"on":""}" onclick="tab('${k}')">${t(k)}</button>`).join("")}</div><div id="view"></div>`;
+ stopLive();await run(VIEWS[r+"_"+st.tab[r]])();
+}
+function tab(k){st.tab[st.me.role]=k;render()}
+const setupMfa=run(async()=>{const d=await api("/auth/mfa/setup",{method:"POST"});st.me.mfa_enrolled=true;alert("Add this secret to your authenticator app (you will need a code at every sign-in):\n\n"+d.mfa_secret+"\n\n"+d.mfa_uri);render()});
+/* ---------- login, invite, guest ---------- */
+function loginView(invite){$("#root").innerHTML=`<header><div class="brand">Lingua<i>Bridge</i></div></header><div class="g2">
+ <div class="card"><h2>Sign in</h2><label>Email</label><input id="em" type="email" autocomplete="username"><label>Password</label><input id="pw" type="password" autocomplete="current-password">
+ <label>Authenticator code (admins and translators)</label><input id="otp" inputmode="numeric" autocomplete="one-time-code"><button class="b" onclick="doLogin()">Sign in</button></div>
+ <div class="card"><h2>Accept invite</h2><p class="mu">Your admin sends a one-time link. Choose your own password (12+ characters).</p><label>Invite code</label><input id="tk" value="${esc(invite)}"><label>New password</label><input id="np" type="password" autocomplete="new-password"><button class="b" onclick="doInvite()">Create my password</button><div id="mfa"></div></div></div>`}
+const doLogin=run(async()=>{const d=await api("/auth/login",{json:{email:V("em"),password:V("pw"),otp:V("otp")||null}});st.tok=d.access_token;sessionStorage.setItem("tok",d.access_token);st.me=null;render()});
+const doInvite=run(async()=>{const d=await api("/auth/accept-invite",{json:{token:V("tk"),password:V("np")}});say("Password set. You can sign in now.");
+ if(d.mfa_secret)$("#mfa").innerHTML=`<div class="note"><b>Two-factor setup (required for your role)</b><br>Add this secret to an authenticator app, then use its code at sign-in:<br><pre>${esc(d.mfa_secret)}</pre></div>`;});
+async function guest(sid,token){$("#root").innerHTML=`<header><div class="brand">Lingua<i>Bridge</i></div></header><div class="card"><h2>Join interpreting session</h2><div id="gbox">Loading…</div></div>`;
+ try{const i=await api(`/sessions/${sid}?guest_token=${encodeURIComponent(token)}`);
+  $("#gbox").innerHTML=polBox(i.policy)+`<p>No account needed. Language: ${esc(i.langs[1])}.</p><div class="cb"><input type="checkbox" id="gc">I consent to transcription and AI captions for this session.</div><button class="b" onclick="guestJoin(${sid},'${esc(token)}')">Join session</button>`}
+ catch(e){$("#gbox").innerHTML='<p class="er">This link is invalid, expired or the session has ended.</p>'}}
+const guestJoin=run(async(sid,token)=>{if(!C("gc"))throw new Error("Consent is required to join");await api(`/sessions/${sid}/join`,{json:{consent:true,guest_token:token}});
+ $("#root").innerHTML=`<header><div class="brand">Lingua<i>Bridge</i></div></header><div id="view"></div>`;await openLive(sid,"guest",token)});
+/* ---------- live interpreting (all roles) ---------- */
+function stopLive(){if(st.live){clearInterval(st.live.iv);try{st.live.ws.close()}catch(e){}st.live=null}}
+async function openLive(sid,role,gtoken){stopLive();const i=await api(`/sessions/${sid}`+(gtoken?`?guest_token=${encodeURIComponent(gtoken)}`:""));
+ const L=st.live={sid,role,info:i,gtoken,lines:[],assist:[]};const proto=location.protocol==="https:"?"wss:":"ws:";
+ L.ws=new WebSocket(`${proto}//${location.host}/ws/sessions/${sid}?token=${encodeURIComponent(gtoken||st.tok)}`);
+ L.ws.onmessage=e=>{const m=JSON.parse(e.data);if(m.type==="assist")L.assist.push(m.msg);else L.lines.push(m);paintLive()};
+ L.ws.onclose=()=>{if(st.live===L)say("Live connection closed",true)};
+ L.iv=setInterval(run(async()=>{L.info=await api(`/sessions/${sid}`+(gtoken?`?guest_token=${encodeURIComponent(gtoken)}`:""));paintTiles();if(L.info.status!=="OPEN"){clearInterval(L.iv);say("Session ended")}}),3000);
+ const [src,tgt]=i.langs;$("#view").innerHTML=`<div id="tiles" class="tiles"></div><div class="card"><span class="bd w">AI-generated captions. The human interpreter is primary.</span>
+ <div id="caps"></div>${role==="translator"?'<div class="note" id="assist"><b>Private AI assist</b> (only you see this)<br><span id="al">No flags yet.</span></div>':""}
+ <div class="row" style="margin-top:8px"><input id="tx" placeholder="Type what was said" style="flex:1;min-width:180px" onkeydown="if(event.key==='Enter')sendLive()"><select id="sl" style="width:auto"><option value="${esc(src)}" ${role==="user"?"selected":""}>${esc(src)}</option><option value="${esc(tgt)}" ${role!=="user"?"selected":""}>${esc(tgt)}</option></select>
+ <button class="s" onclick="sendLive()">Send</button><button class="s" id="mic" onclick="mic()">Mic</button></div>
+ ${role==="guest"?"":'<button class="b d" onclick="endLive()">End session</button>'}<p class="mu">Typing is for testing. In production the interpreter's speech comes from live audio plus speech recognition.</p></div>`;paintTiles()}
+function paintTiles(){const L=st.live;if(!L||!$("#tiles"))return;const j=L.info.joined,tl=(k,n)=>`<div class="tile ${j[k]?"on":""}"><b>${n}</b><br><span class="mu">${j[k]?"connected":"waiting"}</span></div>`;
+ $("#tiles").innerHTML=tl("user","User")+tl("translator","Interpreter")+tl("guest","Doctor or lawyer")+(L.info.started_at?"":'<div class="note" style="grid-column:1/-1">Billing starts when all three are connected.</div>')}
+function paintLive(){const L=st.live;if(!L||!$("#caps"))return;const [src,tgt]=L.info.langs;
+ $("#caps").innerHTML=L.lines.map(m=>{const x=m.texts,s=L.role==="user"?(x[src]||x[tgt]):L.role==="guest"?(x[tgt]||x[src]):Object.values(x).join("  →  ");return`<div class="cap"><small>${esc(m.speaker)}</small>${esc(s)}</div>`}).join("")||'<p class="mu">Captions appear here.</p>';
+ const c=$("#caps");c.scrollTop=c.scrollHeight;if($("#al")&&L.assist.length)$("#al").innerHTML=L.assist.map(esc).join("<br>")}
+function sendLive(){const L=st.live,v=V("tx").trim();if(!v||!L)return;L.ws.send(JSON.stringify({text:v,lang:V("sl")}));$("#tx").value=""}
+function mic(){const SR=window.SpeechRecognition||window.webkitSpeechRecognition;if(!SR)return say("Speech recognition is not supported in this browser",true);const r=new SR(),l=V("sl");r.lang=l==="vi"?"vi-VN":l==="es"?"es-ES":l==="zh"?"zh-CN":l==="ko"?"ko-KR":"en-US";
+ r.onresult=e=>{$("#tx").value=e.results[0][0].transcript;sendLive()};r.onerror=()=>say("Microphone error",true);r.start();say("Listening…")}
+const endLive=run(async()=>{const L=st.live;if(!confirm("End the session and bill it?"))return;const d=await api(`/sessions/${L.sid}/end`,{method:"POST"});say(`Ended. Billed ${d.minutes_billed} min, ${fmt(d.amount_usd)}`);st.tab[st.me.role]="live";render()});
+const VIEWS={};
+/* ---------- user ---------- */
+VIEWS.user_plan=async()=>{const s=await api("/billing/me"),P=st.meta.plans;$("#view").innerHTML=s.plan?`<div class="card"><h2>Subscription active</h2><span class="bd">${esc(s.plan)}</span> ${fmt(s.price)}/month. Documents and interpreting minutes are billed per use on top.<br><button class="s" style="margin-top:10px" onclick="cancelSub()">Cancel plan</button></div>`:
+ `<div class="g2">${Object.entries(P).map(([n,p])=>`<div class="card"><h3>${esc(n)}</h3><div class="big">${fmt(p)}</div><p class="mu">per month</p><button class="b" data-p="${esc(n)}" onclick="subscribe(this.dataset.p)">Subscribe</button></div>`).join("")}</div><p class="mu">Payments are simulated in test mode: no money moves.</p>`};
+const subscribe=run(async p=>{await api("/billing/subscribe?plan="+encodeURIComponent(p),{method:"POST"});say("Subscribed");render()});
+const cancelSub=run(async()=>{await api("/billing/cancel",{method:"POST"});say("Cancelled");render()});
+VIEWS.user_new=async()=>{$("#view").innerHTML=`<div class="card"><h2>Upload a document</h2><label>File (txt, docx, pdf)</label><input type="file" id="fl"><label>Language pair</label><select id="pr">${pairOpts()}</select>
+ <label>Domain</label><select id="dm">${opts(st.meta.domains)}</select><div class="cb"><input type="checkbox" id="rs">Rush (1.5×)</div><button class="b" onclick="quote()">Get quote</button><div id="q"></div></div>`};
+const quote=run(async()=>{const f=$("#fl").files[0];if(!f)throw new Error("Choose a file first");const fd=new FormData();fd.append("pair_id",V("pr"));fd.append("domain",V("dm"));fd.append("rush",C("rs"));fd.append("file",f);
+ const d=await api("/jobs",{form:fd});$("#q").innerHTML=polBox(d.policy)+`<p>${d.words} words. Quote: <span class="big">${fmt(d.quote_usd)}</span></p><button class="b" onclick="payJob(${d.id})">Pay and submit</button>`});
+const payJob=run(async id=>{await api(`/jobs/${id}/pay`,{method:"POST"});say("Paid. A translator will review it.");tab("jobs")});
+VIEWS.user_jobs=async()=>{const j=await api("/jobs");$("#view").innerHTML=`<div class="card sc"><h2>My jobs</h2><table><tr><th>Job</th><th>Pair</th><th>Domain</th><th>Price</th><th>Status</th></tr>${j.map(x=>`<tr><td>${x.id}<br><small class="mu">${esc(x.file)}</small></td><td>${esc(x.pair)}</td><td>${esc(x.domain)}</td><td>${fmt(x.price)}</td><td><span class="bd ${x.status==="APPROVED"||x.status==="DELIVERED"?"":"w"}">${esc(x.status)}</span><br>
+ ${x.status==="APPROVED"||x.status==="DELIVERED"?`<button class="s" onclick="getRes(${x.id})">Get result</button> <button class="s" onclick="revise(${x.id})">Request revision</button><div id="r${x.id}"></div>`:'<small class="mu">Hidden until the translator approves</small>'}</td></tr>`).join("")||"<tr><td colspan=5 class=mu>No jobs yet.</td></tr>"}</table></div>`};
+const getRes=run(async id=>{const d=await api(`/jobs/${id}/result`);$("#r"+id).innerHTML=`<pre>${esc(d.text)}${d.certificate?"\n\n"+esc(d.certificate):""}</pre><small class="mu">${esc(d.notice)}</small>`});
+const revise=run(async id=>{await api(`/jobs/${id}/revision`,{method:"POST"});say("Sent back to the translator");render()});
+VIEWS.user_book=async()=>{$("#view").innerHTML=`<div class="card"><h2>Connect me to an interpreter</h2><label>Language pair</label><select id="pr">${pairOpts()}</select><label>Domain</label><select id="dm" onchange="prev()">${opts(st.meta.domains)}</select>
+ <label>Where is the session?</label><select id="ct" onchange="prev()"><option>US</option><option>VN</option></select><div id="pv"></div>
+ <div class="cb"><input type="checkbox" id="c1">I consent to transcription.</div><div class="cb"><input type="checkbox" id="c2">I consent to AI processing and captions. The human interpreter stays primary.</div><button class="b" onclick="startSess()">Start session</button><p class="mu">15-minute minimum. Billing starts when everyone is connected.</p></div>`;prev()};
+const prev=run(async()=>{$("#pv").innerHTML=polBox(await api(`/policy/${V("dm")}/${V("ct")}`))});
+const startSess=run(async()=>{const cs=[];if(C("c1"))cs.push("transcription");if(C("c2"))cs.push("ai_processing");
+ const s=await api("/sessions",{json:{pair_id:V("pr"),domain:V("dm"),country:V("ct"),consents:cs}});await api(`/sessions/${s.id}/join`,{json:{consent:true}});st.tab.user="live";await render();await openLive(s.id,"user")});
+const sessionsView=async()=>{const s=await api("/sessions"),u=st.me.role==="user";$("#view").innerHTML=`<div class="card sc"><h2>Sessions</h2><table><tr><th>#</th><th>Pair</th><th>Domain</th><th>Status</th><th></th></tr>${s.map(x=>`<tr><td>${x.id}</td><td>${esc(x.pair)}</td><td>${esc(x.domain)}</td><td><span class="bd ${x.status==="OPEN"?"":"w"}">${esc(x.status)}</span> ${x.minutes_billed?x.minutes_billed+" min":""}</td><td>
+ ${x.status==="OPEN"?`<button class="s" onclick="enter(${x.id})">Open</button>`:`<button class="s" onclick="trans(${x.id})">Transcript</button>`}
+ ${x.guest_link_token?`<br><small>Guest link (send to the doctor or lawyer):<br><code>${esc(location.origin+"/#/join/"+x.id+"/"+x.guest_link_token)}</code></small>`:""}</td></tr>`).join("")||"<tr><td colspan=5 class=mu>No sessions yet.</td></tr>"}</table><div id="tr"></div></div><div id="lv"></div>`;
+ window.enter=run(async id=>{$("#lv").innerHTML='<div id="view2"></div>';const keep=$("#view");keep.innerHTML="";await openLive(id,st.me.role)});
+ window.trans=run(async id=>{const l=await api(`/sessions/${id}/transcript`);$("#tr").innerHTML=`<h3>Transcript</h3>`+(l.map(x=>`<div class="cap"><small>${esc(x.speaker)}</small>${esc(Object.values(x.texts).join("  →  "))}</div>`).join("")||'<p class="mu">No transcript (deleted by retention policy or nothing was said).</p>')})};
+VIEWS.user_live=sessionsView;VIEWS.translator_live=sessionsView;
+/* ---------- translator ---------- */
+VIEWS.translator_queue=async()=>{const j=await api("/jobs");$("#view").innerHTML=`<div class="card sc"><h2>Job queue</h2><table><tr><th>Job</th><th>Pair</th><th>Value, fee, you earn</th><th></th></tr>${j.map(x=>`<tr><td>${x.id} <span class="bd">${esc(x.domain)}</span></td><td>${esc(x.pair)}<br><small class="mu">${x.words} words</small></td><td>${fmt(x.value)} − ${fmt(x.fee)} = <b>${fmt(x.you_earn)}</b></td><td>${x.status==="AI_DRAFTED"?`<button class="s" onclick="acceptJob(${x.id})">Accept</button>`:x.status==="IN_REVIEW"?`<button class="s" onclick="editJob(${x.id})">Open editor</button>`:`<span class="bd">${esc(x.status)}</span>`}</td></tr>`).join("")||"<tr><td colspan=4 class=mu>No jobs for your language pairs and credentials right now.</td></tr>"}</table></div><div id="ed"></div>`};
+const acceptJob=run(async id=>{await api(`/jobs/${id}/accept`,{method:"POST"});await editJob(id)});
+const editJob=run(async id=>{const w=await api(`/jobs/${id}/work`);$("#ed").innerHTML=`<div class="card"><h2>Job ${id}: review</h2>${polBox(w.policy)}<div class="g2"><div><label>Source</label><pre>${esc(w.source)}</pre></div><div><label>AI draft</label><pre>${esc(w.draft)}</pre></div></div>
+ <label>Your final translation (authoritative)</label><textarea id="ft">${esc(w.draft)}</textarea><div class="row"><button class="s" onclick="saveJob(${id})">Save</button><button class="s" onclick="qaJob(${id})">Run AI QA</button><button class="b" style="margin:0" onclick="approveJob(${id})">Approve and release</button></div><div id="qa"></div></div>`;$("#ed").scrollIntoView()});
+const saveJob=run(async id=>{await api(`/jobs/${id}/draft`,{method:"PUT",json:{text:V("ft")}});say("Saved. Run QA before approving.")});
+const qaJob=run(async id=>{await api(`/jobs/${id}/draft`,{method:"PUT",json:{text:V("ft")}});const d=await api(`/jobs/${id}/qa`,{method:"POST"});$("#qa").innerHTML=d.flags.length?`<div class="note">${d.flags.map(f=>"• "+esc(f)).join("<br>")}</div>`:'<p>QA passed.</p>'});
+const approveJob=run(async id=>{await api(`/jobs/${id}/draft`,{method:"PUT",json:{text:V("ft")}});const q=await api(`/jobs/${id}/qa`,{method:"POST"});
+ if(q.flags.length&&!confirm("QA found flags:\n\n"+q.flags.join("\n")+"\n\nApprove anyway? You are responsible for the translation."))return;const d=await api(`/jobs/${id}/approve`,{method:"POST"});say(`Approved. You earn ${fmt(d.you_earn)}`);render()});
+VIEWS.translator_earn=async()=>{const e=await api("/translator/earnings");$("#view").innerHTML=`<div class="card"><h2>Earnings</h2><p>Net pending: <span class="big">${fmt(e.net_pending)}</span></p><p class="mu">Monthly membership ${fmt(e.membership_usd)} is net-settled from earnings. Payouts release after the dispute window.</p><table>${e.items.map(i=>`<tr><td>${esc(i.ref)}</td><td>${fmt(i.amount)}</td></tr>`).join("")}</table></div>`};
+VIEWS.translator_set=async()=>{const p=await api("/translator/profile");$("#view").innerHTML=`<div class="card"><h2>Availability</h2><p>Pairs: ${esc(p.pairs.join(", "))}. Domains: ${esc(p.domains.join(", "))}.</p><div class="cb"><input type="checkbox" id="av" ${p.available?"checked":""} onchange="setAvail()">Available for live interpreting</div></div>`};
+const setAvail=run(async()=>{await api("/translator/availability?available="+C("av"),{method:"PUT"});say("Updated")});
+/* ---------- admin ---------- */
+VIEWS.admin_users=async()=>{const u=await api("/admin/users");$("#view").innerHTML=`<div class="card sc"><h2>Accounts</h2><table><tr><th>ID</th><th>Name</th><th>Role</th><th>Status</th><th></th></tr>${u.map(x=>`<tr><td>${esc(x.id)}</td><td>${esc(x.name)}<br><small class="mu">${esc(x.email)}</small></td><td>${esc(x.role)}</td><td><span class="bd ${x.status==="active"?"":"w"}">${esc(x.status)}</span></td><td>${x.role==="admin"?"":`<button class="s" data-id="${esc(x.id)}" data-s="${x.status==="active"?"suspended":"active"}" onclick="setStatus(this.dataset.id,this.dataset.s)">${x.status==="active"?"Suspend":"Activate"}</button> <button class="s" data-id="${esc(x.id)}" onclick="resetUser(this.dataset.id)">Reset</button>`}</td></tr>`).join("")}</table></div>
+ <div class="card"><h3>Create account</h3><div class="g2"><div><label>Name</label><input id="nn"></div><div><label>Email</label><input id="ne" type="email"></div><div><label>Role</label><select id="nr" onchange="$('#tp').style.display=this.value==='translator'?'block':'none'"><option>user</option><option>translator</option></select></div><div><label>Region</label><select id="ng"><option>US</option><option>VN</option></select></div></div>
+ <div id="tp" style="display:none"><label>Language pairs (comma separated, e.g. vi-en)</label><input id="np2" value="vi-en"><label>Domains (comma separated)</label><input id="nd" value="General,Business"></div><button class="b" onclick="mkUser()">Create and get invite link</button><div id="inv"></div><p class="mu">The person sets their own password. You never see it.</p></div>`};
+const setStatus=run(async(id,s)=>{await api(`/admin/users/${id}/status?status=${s}`,{method:"POST"});render()});
+const resetUser=run(async id=>{const d=await api(`/admin/users/${id}/reset`,{method:"POST"});alert("Send this one-time link to the person:\n\n"+location.origin+"/#/invite/"+d.invite_token)});
+const mkUser=run(async()=>{const csv=s=>V(s).split(",").map(x=>x.trim()).filter(Boolean);const d=await api("/admin/users",{json:{name:V("nn"),email:V("ne"),role:V("nr"),region:V("ng"),pairs:csv("np2"),domains:csv("nd")}});
+ $("#inv").innerHTML=`<div class="note">Created ${esc(d.id)}. Send this one-time link:<pre>${esc(location.origin+"/#/invite/"+d.invite_token)}</pre></div>`});
+VIEWS.admin_creds=async()=>{$("#view").innerHTML=`<div class="card"><h2>Verify a credential</h2><p class="mu">Required before a translator can take medical, legal or immigration work.</p><label>Translator ID (e.g. TR-0001)</label><input id="cu1"><label>Type</label><select id="ct1">${opts(["CCHI","NBCMI","COURT","CERT_TRANSLATOR","ATA"])}</select><label>Number</label><input id="cn"><label>Expires</label><input id="ce" type="date"><button class="b" onclick="addCred()">Record verified credential</button></div>`};
+const addCred=run(async()=>{await api("/admin/credentials",{json:{user_public_id:V("cu1"),type:V("ct1"),number:V("cn"),expires_at:V("ce")+"T00:00:00"}});say("Credential recorded")});
+VIEWS.admin_pricing=async()=>{const ps=await api("/pairs");$("#view").innerHTML=`<div class="card"><h2>Fees</h2><div class="g2"><div><label>Commission % (0 to 50)</label><input id="cm" type="number" value="20"></div><div><label>Translator membership (USD, informational)</label><input id="mb" type="number" value="15"></div></div><button class="b" onclick="saveFees()">Save fees</button></div>
+ <div class="card sc"><h2>Language pairs</h2><table><tr><th>Pair</th><th>Per word</th><th>Per minute</th><th>Status</th><th></th></tr>${ps.map(p=>`<tr><td>${esc(p.id)}<br><small class="mu">${esc(p.name)}</small></td><td><input id="w_${esc(p.id)}" type="number" step="0.01" value="${p.word_rate}"></td><td><input id="m_${esc(p.id)}" type="number" step="0.01" value="${p.min_rate}"></td><td><select id="s_${esc(p.id)}">${opts(["LIVE","BETA","PLANNED","PAUSED"],p.status)}</select></td><td><button class="s" data-id="${esc(p.id)}" onclick="savePair(this.dataset.id)">Save</button></td></tr>`).join("")}</table>
+ <h3 style="margin-top:12px">Add a pair</h3><div class="g2"><div><label>ID (e.g. ja-en)</label><input id="xi"></div><div><label>Name</label><input id="xn"></div><div><label>Per word</label><input id="xw" type="number" step="0.01" value="0.12"></div><div><label>Per minute</label><input id="xm" type="number" step="0.01" value="1.2"></div></div><button class="b" onclick="addPair()">Add as PLANNED</button></div>`};
+const saveFees=run(async()=>{await api("/admin/fees",{method:"PUT",json:{commission_pct:+V("cm"),membership_usd:+V("mb")}});say("Fees saved")});
+const savePair=run(async id=>{await api("/admin/pairs/"+id,{method:"PUT",json:{word_rate:+V("w_"+id),min_rate:+V("m_"+id),status:V("s_"+id)}});say("Saved");st.pairs=await api("/pairs")});
+const addPair=run(async()=>{await api("/admin/pairs/"+V("xi"),{method:"PUT",json:{name:V("xn"),word_rate:+V("xw"),min_rate:+V("xm")}});say("Added");render()});
+VIEWS.admin_ledger=async()=>{const[r,l]=await Promise.all([api("/admin/reports/revenue"),api("/admin/ledger")]);$("#view").innerHTML=`<div class="card"><h2>Revenue</h2><div class="g2"><div>Plans<div class="big">${fmt(r.subscriptions)}</div></div><div>Commission<div class="big">${fmt(r.commission)}</div></div><div>Pending payouts<div class="big">${fmt(r.payouts_pending)}</div></div></div></div>
+ <div class="card sc"><h3>Ledger</h3><table><tr><th>Time</th><th>Type</th><th>Ref</th><th>Account</th><th>Amount</th></tr>${l.map(x=>`<tr><td>${esc(x.ts)}</td><td>${esc(x.type)}</td><td>${esc(x.ref)}</td><td>${esc(x.account)}</td><td>${fmt(x.amount)}</td></tr>`).join("")}</table></div>`};
+VIEWS.admin_audit=async()=>{const a=await api("/admin/audit");$("#view").innerHTML=`<div class="card sc"><h2>Audit log</h2><table><tr><th>Time</th><th>Actor</th><th>Action</th><th>Detail</th></tr>${a.map(x=>`<tr><td>${esc(x.ts)}</td><td>${esc(x.actor)}</td><td>${esc(x.action)}</td><td>${esc(x.detail)}</td></tr>`).join("")}</table></div>`};
+VIEWS.admin_tools=async()=>{$("#view").innerHTML=`<div class="card"><h2>Retention</h2><p class="mu">Deletes old transcripts and blanks old delivered documents per policy.</p><button class="b" onclick="retain()">Run retention now</button></div>
+ <div class="card"><h2>Break-glass read</h2><p class="mu">Admins cannot read client content normally. A specific reason is required and logged forever.</p><label>Job ID</label><input id="bj" type="number"><label>Reason</label><input id="br"><button class="b d" onclick="breakGlass()">Read content</button><div id="bo"></div></div>`};
+const retain=run(async()=>{say(JSON.stringify(await api("/admin/retention/run",{method:"POST"})))});
+const breakGlass=run(async()=>{const d=await api("/admin/break-glass/jobs/"+V("bj"),{json:{reason:V("br")}});$("#bo").innerHTML=`<pre>${esc(d.source_text)}\n\n---\n\n${esc(d.final_text)}</pre>`});
+window.addEventListener("hashchange",render);render();
+</script></body></html>

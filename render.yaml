@@ -1,0 +1,31 @@
+# Render Blueprint: one web service (API + UI) and one Postgres database.
+# New > Blueprint > pick this repo. Render prompts for the values marked sync: false.
+databases:
+  - name: lingua-db
+    plan: free              # free Postgres expires after 30 days: fine for testing, upgrade or migrate for anything real
+    postgresMajorVersion: "16"
+services:
+  - type: web
+    name: linguabridge
+    runtime: docker
+    plan: free              # spins down after 15 idle minutes; first request then takes about a minute
+    dockerfilePath: ./Dockerfile
+    dockerContext: .
+    healthCheckPath: /health
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase: { name: lingua-db, property: connectionString }
+      - key: JWT_SECRET
+        generateValue: true
+      - key: ADMIN_EMAIL
+        sync: false
+      - key: ADMIN_PASSWORD
+        sync: false          # 12+ characters; creates the first admin on first boot
+      - key: ANTHROPIC_API_KEY
+        sync: false          # optional: leave blank to test without AI drafts
+      - key: REQUIRE_MFA
+        value: "false"       # set "true" once everyone has enrolled
+      - key: AI_VENDOR_BAA
+        value: "false"
+      - key: PAYMENTS_MODE
+        value: simulated

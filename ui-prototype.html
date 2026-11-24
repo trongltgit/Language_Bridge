@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LinguaBridge</title>
+<style>
+:root{--bg:#f3f5f4;--cd:#fff;--tx:#12263a;--mu:#5a6b78;--bd:#d6ddda;--ac:#0e7c6b;--ac2:#e0f1ed;--wa:#a35a00;--wb:#fff2dc;--er:#b3261e;--ok:#1b7a3a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px);color-scheme:light}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0e1a22;--cd:#16262f;--tx:#e6eeeb;--mu:#9db0ab;--bd:#2a3d47;--ac:#4cc9b0;--ac2:#173a38;--wa:#f0b35a;--wb:#3a2d14;--er:#ff8a80;--ok:#6fd08c;color-scheme:dark}}
+:root[data-theme="dark"]{--bg:#0e1a22;--cd:#16262f;--tx:#e6eeeb;--mu:#9db0ab;--bd:#2a3d47;--ac:#4cc9b0;--ac2:#173a38;--wa:#f0b35a;--wb:#3a2d14;--er:#ff8a80;--ok:#6fd08c;color-scheme:dark}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+h1,h2,h3{font-family:Georgia,"Times New Roman",serif;margin:0 0 .5rem;font-weight:700}
+h2{font-size:1.25rem}h3{font-size:1.02rem}
+.w{max-width:980px;margin:0 auto;padding:12px}
+header{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding:6px 0 12px}
+.brand{font:700 1.5rem Georgia,serif}.brand i{color:var(--ac);font-style:normal}
+.seg{display:flex;border:1px solid var(--bd);border-radius:8px;overflow:hidden;background:var(--cd)}
+.seg button{border:0;background:none;color:var(--tx);padding:8px 12px;cursor:pointer;font:inherit}
+.seg button.on{background:var(--ac);color:#fff}
+.nav{display:flex;gap:4px;overflow-x:auto;border-bottom:2px solid var(--bd);margin-bottom:14px}
+.nav button{border:0;background:none;color:var(--mu);padding:10px 14px;cursor:pointer;font:inherit;border-bottom:3px solid transparent;margin-bottom:-2px;white-space:nowrap}
+.nav button.on{color:var(--ac);border-color:var(--ac);font-weight:600}
+.card{background:var(--cd);border:1px solid var(--bd);border-radius:10px;padding:14px;margin-bottom:12px}
+.g2{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+label{display:block;font-size:.85rem;color:var(--mu);margin:8px 0 3px}
+input,select,textarea{width:100%;padding:9px;border:1px solid var(--bd);border-radius:7px;background:var(--bg);color:var(--tx);font:inherit}
+input[type=checkbox]{width:auto;margin-right:6px}
+.cb{display:flex;align-items:flex-start;color:var(--tx);font-size:.9rem;margin:6px 0}
+textarea{min-height:130px;font-family:ui-monospace,Menlo,monospace;font-size:.85rem}
+.btn{background:var(--ac);color:#fff;border:0;border-radius:7px;padding:9px 16px;font:inherit;font-weight:600;cursor:pointer;margin-top:10px}
+.btn.s{background:none;color:var(--ac);border:1px solid var(--ac);padding:5px 10px;margin:0}
+.btn.d{background:var(--er)}.btn:disabled{opacity:.45;cursor:not-allowed}
+table{width:100%;border-collapse:collapse;font-size:.88rem}
+th,td{text-align:left;padding:8px 6px;border-bottom:1px solid var(--bd);vertical-align:top}
+.sc{overflow-x:auto}
+.bd{display:inline-block;padding:2px 8px;border-radius:99px;font-size:.78rem;background:var(--ac2);color:var(--ac);font-weight:600}
+.bd.w{background:var(--wb);color:var(--wa)}
+.note{background:var(--wb);color:var(--wa);border-radius:8px;padding:9px 12px;font-size:.87rem;margin-bottom:12px}
+.ok{color:var(--ok)}.mu{color:var(--mu)}.er{color:var(--er)}
+.tiles{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:12px}
+.tile{border:1px solid var(--bd);border-radius:10px;padding:10px;background:var(--cd);display:flex;flex-direction:column}
+.tile.on{border-color:var(--ac);background:var(--ac2)}.tile span{font-size:.8rem;color:var(--mu)}
+.cap{padding:7px 10px;border-left:3px solid var(--ac);background:var(--bg);margin:6px 0;border-radius:0 6px 6px 0}
+.cap small{color:var(--mu);margin-right:6px}
+pre{white-space:pre-wrap;background:var(--bg);padding:10px;border-radius:7px;margin:4px 0;font-size:.85rem}
+.big{font:700 1.6rem Georgia,serif;color:var(--ac)}
+footer{color:var(--mu);font-size:.78rem;padding:16px 0}
+</style></head><body><div class="w">
+<header><div class="brand">Lingua<i>Bridge</i></div>
+<div class="seg" id="roles"></div>
+<div style="display:flex;gap:8px"><div class="seg" id="lg"></div>
+<select id="cu" onchange="S.cur=this.value;render()" style="width:auto"><option>USD</option><option>VND</option></select></div></header>
+<div class="nav" id="nav"></div><div id="app"></div>
+<footer>Interactive prototype: all data is simulated in this page. No real AI, payment, telephony or identity calls are made. Legal rules shown are a starting configuration for review by counsel in each market.</footer></div>
+<script>
+const MU={General:1,Business:1.1,Immigration:1.2,Medical:1.25,Legal:1.4},DOM=Object.keys(MU);
+const D={en:{plan:'Plan',new:'New translation',jobs:'My jobs',book:'Interpreting',live:'Live session',queue:'Job queue',earn:'Earnings',users:'Accounts',ledger:'Ledger',pricing:'Pricing',policy:'Compliance',audit:'Audit log',join:'Join session',user:'User',translator:'Translator',admin:'Admin',guest:'Guest'},
+vi:{plan:'Gói dịch vụ',new:'Dịch tài liệu',jobs:'Công việc',book:'Phiên dịch',live:'Cuộc gọi trực tiếp',queue:'Hàng chờ',earn:'Thu nhập',users:'Tài khoản',ledger:'Sổ cái',pricing:'Giá',policy:'Tuân thủ',audit:'Nhật ký',join:'Tham gia',user:'Người dùng',translator:'Phiên dịch viên',admin:'Quản trị',guest:'Khách'}};
+const t=k=>D[S.lang][k]||k;
+const S={role:'user',lang:'en',cur:'USD',tab:{user:'plan',translator:'queue',admin:'users',guest:'join'},comm:20,member:15,sub:null,edit:null,jn:1002,sum:null,sess:null,
+pairs:[{id:'vi-en',n:'Vietnamese ↔ English',w:.12,m:1.2,s:'LIVE'},{id:'es-en',n:'Spanish ↔ English',w:.1,m:1,s:'LIVE'},{id:'zh-en',n:'Chinese ↔ English',w:.11,m:1.1,s:'BETA'},{id:'ko-en',n:'Korean ↔ English',w:.12,m:1.2,s:'PLANNED'}],
+users:[{id:'AD-0001',n:'Platform Admin',r:'Admin',st:'active'},{id:'TR-0001',n:'Tran Minh (VI↔EN, CCHI)',r:'Translator',st:'active'},{id:'US-0001',n:'Nguyen Thi Lan',r:'User',st:'active'}],
+jobs:[{id:'J-1001',name:'birth-certificate.pdf',p:'vi-en',d:'Immigration',w:150,price:21.6,st:'AI_DRAFTED',tid:null,edit:null,qa:null}],ledger:[{t:'09:00',type:'USER_CHARGE',ref:'J-1001',amt:21.6}],audit:[],
+};
+const SRC='GIẤY KHAI SINH\nHọ và tên: Nguyễn Văn An\nSinh ngày: 12/03/2015\nNơi sinh: Thành phố Hồ Chí Minh\nHọ tên mẹ: Trần Thị Lan';
+const AI='BIRTH CERTIFICATE\nFull name: Nguyen Van An\nDate of birth: 12/03/2015\nPlace of birth: Ho Chi Minh City\nMother’s full name: Tran Thi Lan';
+const LINES=[{s:'User',vi:'Tôi bị đau ngực từ hai ngày nay.',en:'I have had chest pain for two days.'},{s:'Doctor',vi:'Cơn đau có lan ra cánh tay không?',en:'Does the pain spread to your arm?'},{s:'User',vi:'Có, lan ra tay trái.',en:'Yes, it spreads to my left arm.',f:'Detail check: confirm “left” (tay trái) was conveyed to the doctor.'},{s:'Doctor',vi:'Bà đang dùng thuốc gì?',en:'What medication are you taking?'}];
+const $=s=>document.querySelector(s),P=id=>S.pairs.find(p=>p.id===id);
+const fmt=n=>S.cur==='VND'?Math.round(n*25000).toLocaleString('en-US')+' ₫':'$'+n.toFixed(2);
+const now=()=>new Date().toLocaleTimeString();
+const log=m=>S.audit.unshift({t:now(),w:S.role,m}),led=(type,ref,amt)=>S.ledger.unshift({t:now(),type,ref,amt});
+const act=id=>S.users.find(u=>u.id===id).st==='active';
+const go=k=>{S.tab[S.role]=k;render()},opts=a=>a.map(x=>`<option>${x}</option>`).join('');
+function pol(d,c){const m=d==='Medical',l=d==='Legal',i=d==='Immigration';return{
+ai:m||l?'AI assists only; qualified human must interpret or review':'AI draft, then human review and approval',
+cred:m?'CCHI/NBCMI-qualified interpreter':l?'Court or legal-certified where required':i?'Certified translator with certification statement':'Vetted translator',
+rec:(c==='US'?'All-party consent prompt (US states vary)':'Explicit consent (Vietnam PDPL)')+(m||l?'; recording OFF by default':'; recording optional'),
+data:c==='VN'?'Vietnam-origin data: log cross-border transfer assessment (PDPL)':'US region; BAA-covered vendors only'+(m?' (PHI)':''),
+lab:'AI disclosure label on every AI-generated caption or draft'}}
+const pb=(d,c)=>{const p=pol(d,c);return`<div class="note"><b>Policy engine (${d}, ${c})</b><br>• ${p.ai}<br>• ${p.cred}<br>• ${p.rec}<br>• ${p.data}<br>• ${p.lab}</div>`};
+function render(){
+$('#roles').innerHTML=['user','translator','admin','guest'].map(r=>`<button class="${S.role==r?'on':''}" onclick="S.role='${r}';render()">${t(r)}</button>`).join('');
+$('#lg').innerHTML=['en','vi'].map(l=>`<button class="${S.lang==l?'on':''}" onclick="S.lang='${l}';render()">${l.toUpperCase()}</button>`).join('');
+const tabs={user:['plan','new','jobs','book','live'],translator:['queue','live','earn'],admin:['users','ledger','pricing','policy','audit'],guest:['join']}[S.role];
+$('#nav').innerHTML=tabs.map(k=>`<button class="${S.tab[S.role]==k?'on':''}" onclick="go('${k}')">${t(k)}</button>`).join('');
+const me=S.role==='user'?'US-0001':S.role==='translator'?'TR-0001':null;
+$('#app').innerHTML=me&&!act(me)?`<div class="card er"><h2>Account suspended</h2>An admin suspended ${me}. Switch to Admin and activate the account to continue.</div>`:V[S.role+'_'+S.tab[S.role]]();}
+const V={};
+V.user_plan=()=>S.sub?`<div class="card"><h2>Subscription active</h2><span class="bd">${S.sub.n}</span> ${fmt(S.sub.p)}/month. Pay per job or per interpreting minute on top.<br><button class="btn s" onclick="S.sub=null;log('Subscription cancelled');render()">Cancel plan</button></div>`:
+`<div class="note">Demo tour: 1) User subscribes and orders a translation. 2) Translator accepts, edits, runs AI QA and approves. 3) User downloads. 4) User books interpreting; Translator and Guest join. 5) Admin reviews ledger, accounts and audit log.</div><div class="g2">${[['Basic',9,'Instant AI drafts, 3 glossaries'],['Pro',29,'Priority queue, unlimited glossaries'],['Business',99,'Team seats, per-tenant keys, SSO']].map(([n,p,d])=>`<div class="card"><h3>${n}</h3><div class="big">${fmt(p)}</div><p class="mu">per month. ${d}</p><button class="btn" onclick="S.sub={n:'${n}',p:${p}};led('SUBSCRIPTION','${n}',${p});log('User subscribed: ${n}');render()">Subscribe</button></div>`).join('')}</div>`;
+V.user_new=()=>{if(!S.sub)return'<div class="note">Subscribe on the Plan tab before ordering.</div>';setTimeout(quote);return`<div class="card"><h2>Upload a document</h2>
+<label>File (PDF, DOCX, image or scan)</label><input type="file" id="fn"><label>Language pair</label><select id="p" onchange="quote()">${S.pairs.filter(p=>p.s=='LIVE').map(p=>`<option value="${p.id}">${p.n}</option>`).join('')}</select>
+<label>Domain</label><select id="d" onchange="quote()">${opts(DOM)}</select><label>Word count (auto-detected by OCR in production)</label><input type="number" id="w" value="150" oninput="quote()">
+<div class="cb"><input type="checkbox" id="r" onchange="quote()">Rush delivery (1.5×)</div><div id="qp"></div><div id="qt" class="big"></div>
+<button class="btn" onclick="mkJob()">Pay and submit</button></div>`};
+function quote(){const p=P($('#p').value),d=$('#d').value,v=(+$('#w').value||0)*p.w*MU[d]*($('#r').checked?1.5:1);$('#qt').innerHTML='Quote: '+fmt(v);$('#qp').innerHTML=pb(d,'US');return v}
+function mkJob(){const v=quote(),id='J-'+S.jn++;S.jobs.push({id,name:$('#fn').files[0]?.name||'document.pdf',p:$('#p').value,d:$('#d').value,w:+$('#w').value,price:v,st:'AI_DRAFTED',tid:null,edit:null,qa:null});led('USER_CHARGE',id,v);log(`${id} paid; AI draft created via model router (${$('#p').value}), logged`);go('jobs')}
+V.user_jobs=()=>`<div class="card sc"><h2>My jobs</h2><table><tr><th>Job</th><th>Pair</th><th>Domain</th><th>Price</th><th>Status</th></tr>${S.jobs.map(j=>`<tr><td>${j.id}<br><small class="mu">${j.name}</small></td><td>${P(j.p).n}</td><td>${j.d}</td><td>${fmt(j.price)}</td><td><span class="bd ${j.st=='APPROVED'||j.st=='DELIVERED'?'':'w'}">${j.st=='DELIVERED'?'DELIVERED':j.st=='APPROVED'?'APPROVED':'In review'}</span>
+${j.st=='APPROVED'?`<br><button class="btn s" onclick="S.jobs.find(x=>x.id=='${j.id}').st='DELIVERED';log('${j.id} downloaded');render()">Download</button>`:''}
+${j.st=='DELIVERED'?`<pre>${j.edit}${j.d=='Immigration'?'\n\n— Translator certification: I certify I am competent in both languages and that this is a complete and accurate translation. (name, ID, date)':''}</pre>`:'<br><small class="mu">Hidden until translator approval</small>'}</td></tr>`).join('')}</table></div>`;
+V.user_book=()=>{if(!S.sub)return'<div class="note">Subscribe on the Plan tab before booking.</div>';setTimeout(bq);return`<div class="card"><h2>Connect me to an interpreter</h2>
+<label>Language pair</label><select id="bp" onchange="bq()">${S.pairs.filter(p=>p.s=='LIVE').map(p=>`<option value="${p.id}">${p.n}</option>`).join('')}</select><label>Domain</label><select id="bd" onchange="bq()">${opts(DOM)}</select>
+<label>Where is the session?</label><select id="bc" onchange="bq()"><option>US</option><option>VN</option></select><div id="bx"></div>
+<div class="cb"><input type="checkbox" class="cs">I consent to transcription and AI captions, and I know the human interpreter stays primary.</div>
+<div class="cb"><input type="checkbox" class="cs">I understand recording is off unless every participant agrees.</div><button class="btn" onclick="start()">Start session</button></div>`};
+function bq(){const p=P($('#bp').value),d=$('#bd').value;$('#bx').innerHTML=pb(d,$('#bc').value)+`<b>${fmt(p.m*MU[d])} per minute</b>, 15-minute minimum. Billing starts when all parties connect.`}
+function start(){if([...document.querySelectorAll('.cs')].some(c=>!c.checked))return alert('Please accept both consent items.');
+if(!act('TR-0001'))return alert('No interpreter available.');S.sess={p:$('#bp').value,d:$('#bd').value,c:$('#bc').value,j:{user:1,translator:0,guest:0},sec:0,tk:0,ln:[],iv:null};S.sum=null;log('Session created; one-time guest link issued');go('live')}
+function sv(r){const s=S.sess;if(!s)return S.sum?`<div class="card"><h2>Session ended</h2>${S.sum}</div>`:'<div class="card mu">No active session. The user books one first.</div>';
+const tl=(k,l,g)=>`<div class="tile ${s.j[k]?'on':''}"><b>${l}</b><small>${g}</small><span>${s.j[k]?'connected':'waiting'}</span></div>`,p=P(s.p),all=s.j.user&&s.j.translator&&s.j.guest,m=String(Math.floor(s.sec/60)).padStart(2,'0')+':'+String(s.sec%60).padStart(2,'0');
+let h=`<div class="tiles">${tl('user','User','Vietnamese')}${tl('translator','Interpreter','VI ↔ EN')}${tl('guest','Doctor or lawyer','English')}</div>`;
+if(!s.j[r])return h+`<div class="card"><h3>Before you join</h3>${pb(s.d,s.c)}<div class="cb"><input type="checkbox" id="jc">I consent to transcription and AI captions for this session.</div><button class="btn" onclick="join('${r}')">Join session</button></div>`;
+h+=`<div class="card"><span class="bd w">AI-generated captions. The human interpreter is primary.</span> <b style="float:right">${m} <small class="mu">(demo clock ×30)</small></b>`;
+h+=all?'':'<p class="mu">Waiting for everyone. Billing starts when all three are connected.</p>';
+h+=s.ln.map(l=>`<div class="cap"><small>${l.s}</small>${r=='user'?l.vi:r=='guest'?l.en:l.vi+' → '+l.en}</div>`).join('')||'<p class="mu">Captions appear here.</p>';
+if(r=='translator')h+=`<div class="note"><b>Private AI assist</b> (only you see this)<br>${s.ln.filter(l=>l.f).map(l=>l.f).join('<br>')||'No flags yet.'}<br>Glossary: đau ngực = chest pain</div>`;
+const mins=Math.max(15,Math.ceil(s.sec/60));
+if(r!='guest')h+=`<p>Billing meter: <b>${fmt(mins*p.m*MU[s.d])}</b> <small class="mu">(${mins} billable min, 15 min minimum)</small></p><button class="btn d" onclick="endS()">End session</button>`;
+return h+'</div>'}
+function join(r){if(!$('#jc').checked)return alert('Consent is required to join.');S.sess.j[r]=1;log(r+' joined with consent recorded');const s=S.sess;if(s.j.user&&s.j.translator&&s.j.guest&&!s.iv)s.iv=setInterval(tick,1000);render()}
+function tick(){const s=S.sess;if(!s)return;s.sec+=30;if(++s.tk%4==0&&s.ln.length<LINES.length)s.ln.push(LINES[s.ln.length]);const v=S.role=='guest'||(S.role!='admin'&&S.tab[S.role]=='live');if(v)render()}
+function endS(){const s=S.sess;clearInterval(s.iv);const p=P(s.p),a=Math.max(15,Math.ceil(s.sec/60))*p.m*MU[s.d],c=a*S.comm/100;led('USER_CHARGE','SESSION',a);led('COMMISSION','SESSION',c);led('PAYOUT_PENDING','SESSION',a-c);
+log('Session ended; transcript saved, retention per policy');S.sum=`Billed ${fmt(a)}. Interpreter payout ${fmt(a-c)} after ${S.comm}% commission, released after the dispute window. Bilingual transcript saved (${s.ln.length} lines).`;S.sess=null;render()}
+V.user_live=()=>sv('user');V.translator_live=()=>sv('translator');V.guest_join=()=>S.sess?sv('guest'):`<div class="card"><h2>Join with your one-time link</h2><p>No account needed. Your host (for example a doctor or lawyer) receives a link from the user. No session is open right now.</p>${S.sum?S.sum:''}</div>`;
+V.translator_queue=()=>{if(S.edit)return ed(S.jobs.find(j=>j.id==S.edit));const q=S.jobs.filter(j=>j.st=='AI_DRAFTED'||(j.tid&&j.st=='IN_REVIEW'));
+return`<div class="card sc"><h2>Job queue</h2>${q.length?`<table><tr><th>Job</th><th>Pair</th><th>Value, fee, you earn</th><th></th></tr>${q.map(j=>`<tr><td>${j.id} <span class="bd">${j.d}</span></td><td>${P(j.p).n}<br><small class="mu">${j.w} words</small></td><td>${fmt(j.price)} − ${fmt(j.price*S.comm/100)} (${S.comm}%) = <b>${fmt(j.price*(1-S.comm/100))}</b></td><td><button class="btn s" onclick="acc('${j.id}')">${j.st=='AI_DRAFTED'?'Accept':'Open editor'}</button></td></tr>`).join('')}</table>`:'<p class="mu">No jobs for your language pairs right now.</p>'}</div>`};
+function acc(id){const j=S.jobs.find(x=>x.id==id);if(j.st=='AI_DRAFTED'){j.st='IN_REVIEW';j.tid='TR-0001';j.edit=AI;log(id+' accepted by TR-0001')}S.edit=id;render()}
+const ed=j=>`<div class="card"><h2>${j.id}: review</h2>${pb(j.d,'US')}<div class="g2"><div><label>Source (Vietnamese)</label><pre>${SRC}</pre></div><div><label>AI draft (pre-translation)</label><pre>${AI}</pre></div></div>
+<label>Your final translation (authoritative)</label><textarea oninput="S.jobs.find(x=>x.id=='${j.id}').edit=this.value;S.jobs.find(x=>x.id=='${j.id}').qa=null">${j.edit}</textarea>
+<button class="btn s" onclick="qa('${j.id}')" style="margin-top:10px">Run AI QA (proposes, never overwrites)</button>
+${j.qa?`<div class="note">${j.qa.length?j.qa.map(x=>'• '+x).join('<br>'):'<span class="ok">QA passed: numbers and names consistent.</span>'}</div>`:''}
+<br><button class="btn" ${j.qa?'':'disabled'} onclick="appr('${j.id}')">Approve and release to user</button> <button class="btn s" onclick="S.edit=null;render()">Back</button></div>`;
+function qa(id){const j=S.jobs.find(x=>x.id==id),dg=x=>(x.match(/\d+/g)||[]).join(','),r=[];if(dg(SRC)!=dg(j.edit))r.push('Numbers differ from the source (dates or IDs). Please check.');if(!j.edit.trim())r.push('Translation is empty.');if(j.edit.split('\n').length<SRC.split('\n').length)r.push('Fewer lines than source: possible omission.');j.qa=r;log(id+' QA pass run: '+r.length+' flags');render()}
+function appr(id){const j=S.jobs.find(x=>x.id==id);j.st='APPROVED';const c=j.price*S.comm/100;led('COMMISSION',id,c);led('PAYOUT_PENDING',id,j.price-c);log(id+' APPROVED by translator');S.edit=null;render()}
+V.translator_earn=()=>{const g=S.ledger.filter(x=>x.type=='PAYOUT_PENDING').reduce((a,x)=>a+x.amt,0);return`<div class="card"><h2>Earnings</h2><p>Net of ${S.comm}% commission: <span class="big">${fmt(g)}</span></p><p>Monthly membership ${fmt(S.member)} is net-settled from earnings, so no separate card charge is needed once you have earnings.</p><p class="mu">Payouts release after the dispute window. Tax forms: 1099 (US) or withholding and e-invoice (Vietnam), set at onboarding.</p></div>`};
+V.admin_users=()=>`<div class="card sc"><h2>Accounts</h2><table><tr><th>ID</th><th>Name</th><th>Role</th><th>Status</th><th></th></tr>${S.users.map(u=>`<tr><td>${u.id}</td><td>${u.n}</td><td>${u.r}</td><td><span class="bd ${u.st=='active'?'':'w'}">${u.st}</span></td><td>${u.r=='Admin'?'':`<button class="btn s" onclick="tg('${u.id}')">${u.st=='active'?'Suspend':'Activate'}</button> <button class="btn s" onclick="log('Password reset link sent to ${u.id}');alert('Reset link sent. Admins never see passwords.')">Reset</button>`}</td></tr>`).join('')}</table></div>
+<div class="card"><h3>Create account</h3><div class="g2"><div><label>Name</label><input id="nn"></div><div><label>Role</label><select id="nr"><option>User</option><option>Translator</option></select></div></div><button class="btn" onclick="mk()">Create and send invite</button><p class="mu">The person sets their own password through the invite link. MFA is mandatory for Admin and Translator.</p></div>`;
+function tg(id){const u=S.users.find(x=>x.id==id);u.st=u.st=='active'?'suspended':'active';log(id+' '+u.st);render()}
+function mk(){const r=$('#nr').value,n=$('#nn').value||'New '+r,id=(r=='User'?'US-':'TR-')+String(S.users.length+1).padStart(4,'0');S.users.push({id,n,r,st:'active'});log('Account '+id+' created; invite sent');render()}
+V.admin_ledger=()=>{const rv=S.ledger.filter(x=>['SUBSCRIPTION','COMMISSION'].includes(x.type)).reduce((a,x)=>a+x.amt,0);return`<div class="card sc"><h2>Double-entry ledger</h2><p>Platform revenue (plans plus commission): <span class="big">${fmt(rv)}</span></p><table><tr><th>Time</th><th>Type</th><th>Ref</th><th>Amount</th></tr>${S.ledger.map(x=>`<tr><td>${x.t}</td><td>${x.type}</td><td>${x.ref}</td><td>${fmt(x.amt)}</td></tr>`).join('')}</table></div>`};
+V.admin_pricing=()=>`<div class="card"><h2>Fees</h2><div class="g2"><div><label>Translator commission %</label><input type="number" value="${S.comm}" onchange="S.comm=+this.value;log('Commission set to '+this.value+'%')"></div><div><label>Translator monthly membership (USD)</label><input type="number" value="${S.member}" onchange="S.member=+this.value;log('Membership fee changed')"></div></div></div>
+<div class="card sc"><h2>Language pair registry</h2><table><tr><th>Pair</th><th>Per word</th><th>Per minute</th><th>Status</th></tr>${S.pairs.map(p=>`<tr><td>${p.n}</td><td>${fmt(p.w)}</td><td>${fmt(p.m)}</td><td><select onchange="P('${p.id}').s=this.value;log('${p.id} set to '+this.value)">${['LIVE','BETA','PLANNED','PAUSED'].map(s=>`<option ${s==p.s?'selected':''}>${s}</option>`).join('')}</select></td></tr>`).join('')}</table><p class="mu">Only LIVE pairs can be ordered by users. Launch a pair after interpreters, glossary and AI quality checks pass.</p></div>`;
+V.admin_policy=()=>`<div class="card sc"><h2>Jurisdiction rules (starting configuration)</h2><table><tr><th>Domain</th><th>AI rule</th><th>Credential</th><th>Recording (US)</th><th>Data (VN)</th></tr>${DOM.map(d=>{const a=pol(d,'US'),b=pol(d,'VN');return`<tr><td><b>${d}</b></td><td>${a.ai}</td><td>${a.cred}</td><td>${a.rec}</td><td>${b.data}</td></tr>`}).join('')}</table></div>
+<div class="card"><h3>Legal basis tracked</h3><p>US: HIPAA, ACA Section 1557 (qualified interpreters; human review of critical machine translation), state recording-consent laws, 1099 reporting. Vietnam: Personal Data Protection Law (in force 1 Jan 2026), AI Law (in force 1 Mar 2026), e-invoice and tax rules. EU: GDPR and AI Act transparency duties. Each rule version is dated, reviewed by counsel, and changes are logged.</p></div>`;
+V.admin_audit=()=>`<div class="card sc"><h2>Audit log</h2><table><tr><th>Time</th><th>Actor</th><th>Event</th></tr>${S.audit.map(a=>`<tr><td>${a.t}</td><td>${a.w}</td><td>${a.m}</td></tr>`).join('')||'<tr><td colspan=3 class="mu">No events yet.</td></tr>'}</table></div>`;
+render();
+</script></body></html>
